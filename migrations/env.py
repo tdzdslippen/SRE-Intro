@@ -33,10 +33,11 @@ def run_migrations_online():
     )
     try:
         with engine.connect() as connection:
-            context.configure(connection=connection, target_metadata=None)
+            connection.exec_driver_sql("SET lock_timeout = '3s'")
+            connection.exec_driver_sql("SET statement_timeout = '30s'")
+            connection.commit()
+            context.configure(connection=connection, target_metadata=None, transaction_per_migration=True)
             with context.begin_transaction():
-                connection.exec_driver_sql("SET LOCAL lock_timeout = '3s'")
-                connection.exec_driver_sql("SET LOCAL statement_timeout = '30s'")
                 context.run_migrations()
     finally:
         engine.dispose()

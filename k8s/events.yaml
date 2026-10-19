@@ -3,7 +3,11 @@ kind: Deployment
 metadata:
   name: events
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: events
@@ -12,14 +16,19 @@ spec:
       labels:
         app: events
     spec:
+      terminationGracePeriodSeconds: 40
       imagePullSecrets:
         - name: ghcr-secret
       containers:
         - name: events
-          image: ghcr.io/tdzdslippen/quickticket-events:a8020f855dddb9a5260a8a9ba233185ed8713861
-          imagePullPolicy: Always
+          image: quickticket-events:lab12-b
+          imagePullPolicy: Never
           ports:
             - containerPort: 8081
+          lifecycle:
+            preStop:
+              exec:
+                command: [sh, -c, "sleep 10"]
           env:
             - name: DB_HOST
               value: postgres
